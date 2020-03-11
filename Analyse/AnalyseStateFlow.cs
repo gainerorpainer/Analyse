@@ -7,8 +7,7 @@ namespace Analyse
         public bool insideFrame = false;
         public int lastBit = -1;
         public int onesCounter;
-        public int onesSequenceCounter = 0;
-        public int zerosSequenceCounter;
-        internal List<int> currentFrame;
+        internal List<int> currentFrame = new List<int>();
+        internal int sequenceCounter = 0;
     }
 }
