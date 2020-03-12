@@ -14,7 +14,6 @@ namespace Analyse
     public partial class Form1 : Form
     {
         private const int LONGESTONESSEQUENCE = 250;
-        private const int TOOSHORTFORBIT = 5;
         // Must be odd!
         private const int MEDIANFILTERWINDOW = 30;
 
@@ -26,7 +25,10 @@ namespace Analyse
             InitializeComponent();
 
             if (openFileDialog1.ShowDialog() != DialogResult.OK)
+            {
                 Close();
+                return;
+            }
 
             // Read into model
             int[,] rawData = ReadRawData();
@@ -64,6 +66,8 @@ namespace Analyse
                 // Calc how wide the shortest sequence is
                 channel.OversamplingRate = Math.Min(channel.shortestOnesSequence, channel.shortestZerosSequence);
 
+                channel.OversamplingRate = 26;
+
                 // Take the amount of samples which should equal 1s -> bitrate
                 channel.BitRate = ProcessedData[i].Count / 1 / channel.OversamplingRate;
                 int[] commonbitrate = new int[] { 50, 110, 150, 300, 1200, 2400, 4800, 9600, 19200, 38400, 57600, 115200, 230400, 460800 };
@@ -80,7 +84,7 @@ namespace Analyse
             ExtractFrameData();
 
             // ONLY 2!
-            ListView[] lists = Controls.OfType<ListView>().ToArray();// new ListView[] { listView1, listView2 }; 
+            ListView[] lists = new ListView[] { listView1, listView2 };
             for (int i = 0; i < lists.Length; i++)
             {
                 var listView = lists[i];
@@ -94,10 +98,18 @@ namespace Analyse
                                         {
                         j.ToString(), // Frame number
                         frame.Count.ToString(), // frame length
-                        string.Join(" ", frame.Select(x=> x.ToString("X2")))
+                        string.Join(" ", frame.Select(x=> x.ToString("X2"))), // Hex
+                        string.Join(" ", frame.Select(x=> x.ToString()))
                                         }));
                 }
             }
+
+
+            var builder = new StringBuilder();
+            foreach (ListViewItem item in listView2.Items)
+                builder.AppendLine(item.SubItems[3].Text);
+
+            Clipboard.SetText(builder.ToString());
         }
 
         private void ExtractFrameData()
@@ -113,25 +125,59 @@ namespace Analyse
                     List<int> binaryString = new List<int>();
 
                     int lastbit = frame[0];
-                    int sequenceCount = 1;
-                    for (int k = 1; k < frame.Count; k++)
+                    int clockCount = 1;
+                    int toggleState = 0;
+                    // Idea: have a clock that runs at double the speed that toggles state
+                    for (int k = 0; k < frame.Count; k++)
                     {
-                        // Sample until oversampling rate or state transistion
-                        if ((frame[k] != lastbit) ||
-                            (sequenceCount > channel.OversamplingRate))
+                        if ((frame[k] != lastbit))
                         {
-                            lastbit = frame[k];
-                            sequenceCount = 1;
+                            // Reset "clock"
+                            clockCount = 0;
 
-                            binaryString.Add(frame[k]);
+                            // toggle state to be ready to sample
+                            toggleState = 0;
+
+                            lastbit = frame[k];
                         }
-                        else
+
+                        clockCount++;
+
+                        if (clockCount >= channel.OversamplingRate / 2)
                         {
-                            sequenceCount++;
+                            if (toggleState == 0)
+                            {
+                                // Sample at this point
+                                binaryString.Add(frame[k]);
+
+                                // And restart clock
+                                clockCount = 0;
+
+                                // And disable sampling until next clock cycle
+                                toggleState = 1;
+                            }
+                            else
+                            {
+                                // restart clock
+                                clockCount = 0;
+
+                                // toggle state to be ready
+                                toggleState = 0;
+                            }
                         }
+
                     }
 
                     // parse binary string
+                    // skip first bit (is always 0 SOF)
+                    channel.Frames[j] = new List<int>();
+                    for (int bitCounter = 1; bitCounter < (binaryString.Count - 8); bitCounter += 8)
+                    {
+                        int b = binaryString[bitCounter + 1] + 2 * binaryString[bitCounter + 2] + 4 * binaryString[bitCounter + 3] + 8 * binaryString[bitCounter + 4]
+                            + 16 * binaryString[bitCounter + 5] + 32 * binaryString[bitCounter + 6] + 64 * binaryString[bitCounter + 7] + 128 * binaryString[bitCounter + 8];
+                        channel.Frames[j].Add(b);
+                    }
+
                 }
             }
         }
@@ -169,7 +215,7 @@ namespace Analyse
                     else
                         currentFlow.onesCounter = 0;
 
-                    if (currentFlow.onesCounter >= LONGESTONESSEQUENCE)
+                    if (currentFlow.onesCounter >= 25 * 8)
                     {
                         currentFlow.insideFrame = false;
                         currentDescription.Frames.Add(currentFlow.currentFrame);
@@ -212,27 +258,22 @@ namespace Analyse
 
         private void MedianFilter(int[,] rawData)
         {
-            Queue<int>[] buffer = new Queue<int>[rawData.GetLength(1)];
             ProcessedData = new List<int>[rawData.GetLength(1)];
             for (int i = 0; i < ProcessedData.Length; i++)
             {
-                buffer[i] = new Queue<int>(Enumerable.Range(0, MEDIANFILTERWINDOW).Select(x => 1));
                 ProcessedData[i] = new List<int>();
             }
 
-            for (int row = 0; row < rawData.GetLength(0); row++)
+            for (int row = MEDIANFILTERWINDOW; row < rawData.GetLength(0); row++)
             {
                 for (int col = 0; col < 2; col++)
                 {
-                    // Insert value at the end
-                    buffer[col].Enqueue(rawData[row, col]);
+                    // Backtrack and sum
+                    int sum = 0;
+                    for (int i = 0; i < MEDIANFILTERWINDOW; i++)
+                        sum += rawData[row - 1 - i, col];
 
-                    // Pop one at the front
-                    buffer[col].Dequeue();
-
-                    // Take the middle element
-                    var median = buffer[col].OrderBy(x => x).ElementAt(MEDIANFILTERWINDOW / 2);
-                    ProcessedData[col].Add(median);
+                    ProcessedData[col].Add(sum > (MEDIANFILTERWINDOW / 2) ? 1 : 0);
                 }
             }
         }
