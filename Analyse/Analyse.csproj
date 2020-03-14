@@ -48,6 +48,7 @@
   <ItemGroup>
     <Compile Include="AnalyseStateFlow.cs" />
     <Compile Include="Avg.cs" />
+    <Compile Include="DataPoint.cs" />
     <Compile Include="Form1.cs">
       <SubType>Form</SubType>
     </Compile>

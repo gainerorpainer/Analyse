@@ -45,6 +45,8 @@
             this.columnHeader6 = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.columnHeader8 = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.splitContainer2 = new System.Windows.Forms.SplitContainer();
+            this.columnHeader9 = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
+            this.columnHeader10 = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             ((System.ComponentModel.ISupportInitialize)(this.dataGridView1)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).BeginInit();
             this.splitContainer1.Panel1.SuspendLayout();
@@ -100,6 +102,7 @@
             // 
             this.listView1.Columns.AddRange(new System.Windows.Forms.ColumnHeader[] {
             this.columnHeader1,
+            this.columnHeader9,
             this.columnHeader2,
             this.columnHeader3,
             this.columnHeader7});
@@ -120,14 +123,17 @@
             // 
             // columnHeader2
             // 
+            this.columnHeader2.DisplayIndex = 1;
             this.columnHeader2.Text = "Length";
             // 
             // columnHeader3
             // 
+            this.columnHeader3.DisplayIndex = 2;
             this.columnHeader3.Text = "Hexvalue";
             // 
             // columnHeader7
             // 
+            this.columnHeader7.DisplayIndex = 3;
             this.columnHeader7.Text = "DezValue";
             // 
             // splitContainer1
@@ -151,6 +157,7 @@
             // 
             this.listView2.Columns.AddRange(new System.Windows.Forms.ColumnHeader[] {
             this.columnHeader4,
+            this.columnHeader10,
             this.columnHeader5,
             this.columnHeader6,
             this.columnHeader8});
@@ -171,14 +178,17 @@
             // 
             // columnHeader5
             // 
+            this.columnHeader5.DisplayIndex = 1;
             this.columnHeader5.Text = "Length";
             // 
             // columnHeader6
             // 
+            this.columnHeader6.DisplayIndex = 2;
             this.columnHeader6.Text = "Hexvalue";
             // 
             // columnHeader8
             // 
+            this.columnHeader8.DisplayIndex = 3;
             this.columnHeader8.Text = "DezValue";
             // 
             // splitContainer2
@@ -198,6 +208,14 @@
             this.splitContainer2.Size = new System.Drawing.Size(800, 450);
             this.splitContainer2.SplitterDistance = 225;
             this.splitContainer2.TabIndex = 3;
+            // 
+            // columnHeader9
+            // 
+            this.columnHeader9.Text = "Error";
+            // 
+            // columnHeader10
+            // 
+            this.columnHeader10.Text = "Error";
             // 
             // Form1
             // 
@@ -241,6 +259,8 @@
         private System.Windows.Forms.SplitContainer splitContainer2;
         private System.Windows.Forms.ColumnHeader columnHeader7;
         private System.Windows.Forms.ColumnHeader columnHeader8;
+        private System.Windows.Forms.ColumnHeader columnHeader9;
+        private System.Windows.Forms.ColumnHeader columnHeader10;
     }
 }
 
