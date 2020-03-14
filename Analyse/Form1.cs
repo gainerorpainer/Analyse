@@ -16,6 +16,7 @@ namespace Analyse
         private const int LONGESTONESSEQUENCE = 250;
         // Must be odd!
         private const int MEDIANFILTERWINDOW = 30;
+        private const int OVERSAMPLINGRATE = 27;
 
         public List<int>[] ProcessedData { get; set; }
         internal ChannelDescription[] Channels { get; set; }
@@ -64,9 +65,9 @@ namespace Analyse
                 var channel = Channels[i];
 
                 // Calc how wide the shortest sequence is
-                channel.OversamplingRate = Math.Min(channel.shortestOnesSequence, channel.shortestZerosSequence);
+                //channel.OversamplingRate = Math.Min(channel.shortestOnesSequence, channel.shortestZerosSequence);
 
-                channel.OversamplingRate = 26;
+                channel.OversamplingRate = OVERSAMPLINGRATE;
 
                 // Take the amount of samples which should equal 1s -> bitrate
                 channel.BitRate = ProcessedData[i].Count / 1 / channel.OversamplingRate;
@@ -226,26 +227,8 @@ namespace Analyse
 
                     if (ProcessedData[col][row] != currentFlow.lastBit)
                     {
-
-                        if (currentFlow.lastBit == 1)
-                        {
-                            if (currentFlow.sequenceCounter > currentDescription.longestOnesSequence)
-                                currentDescription.longestOnesSequence = currentFlow.sequenceCounter;
-
-                            if (currentFlow.sequenceCounter > 0)
-                                if (currentFlow.sequenceCounter < currentDescription.shortestOnesSequence)
-                                    currentDescription.shortestOnesSequence = currentFlow.sequenceCounter;
-                        }
-                        else
-                        {
-                            if (currentFlow.sequenceCounter > currentDescription.longestZerosSequence)
-                                currentDescription.longestZerosSequence = currentFlow.sequenceCounter;
-
-
-                            if (currentFlow.sequenceCounter > 0)
-                                if (currentFlow.sequenceCounter < currentDescription.shortestZerosSequence)
-                                    currentDescription.shortestZerosSequence = currentFlow.sequenceCounter;
-                        }
+                        if (currentFlow.sequenceCounter > 0)
+                            currentFlow.SequenceLengthList.Add(currentFlow.sequenceCounter);
 
                         currentFlow.lastBit = ProcessedData[col][row];
                         currentFlow.sequenceCounter = 0;
@@ -254,6 +237,8 @@ namespace Analyse
                     currentFlow.sequenceCounter++;
                 }
             }
+
+            var adsdasd = flows[0].SequenceLengthList.OrderBy(x => x).ToList();
         }
 
         private void MedianFilter(int[,] rawData)

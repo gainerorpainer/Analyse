@@ -9,5 +9,6 @@ namespace Analyse
         public int onesCounter;
         internal List<int> currentFrame = new List<int>();
         internal int sequenceCounter = 0;
+        public List<int> SequenceLengthList = new List<int>();
     }
 }
